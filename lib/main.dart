@@ -43,6 +43,7 @@ class _HomePageState extends State<HomePage> {
   // Data from device
   double currentFlowRate = 0.0;
   double totalVolume = 0.0;
+  String customerId = ""; // Added customer ID variable
   List<Map<String, dynamic>> logData = [];
   
   // WiFi settings
@@ -164,10 +165,23 @@ class _HomePageState extends State<HomePage> {
           _processLogData(line);
         } else if (line.startsWith('[CMD]')) {
           _showSnackBar(line);
+        } else if (line.startsWith('CustomerID:')) {
+          // Process customer ID data
+          _processCustomerIdData(line);
         }
       }
       
       setState(() {});
+    }
+  }
+
+  void _processCustomerIdData(String line) {
+    try {
+      // Expected format: "CustomerID:PAM0001"
+      customerId = line.replaceAll('CustomerID:', '').trim();
+      _showSnackBar('Customer ID: $customerId');
+    } catch (e) {
+      print('Error parsing customer ID data: $e');
     }
   }
 
@@ -316,6 +330,30 @@ class _HomePageState extends State<HomePage> {
       length: 3,
       child: Column(
         children: [
+          // Display customer ID at the top when connected
+          if (customerId.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.badge, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Customer ID: $customerId',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           TabBar(
             tabs: const [
               Tab(text: 'Dashboard'),
@@ -435,6 +473,36 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Display customer ID in settings tab
+          if (customerId.isNotEmpty)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Device Information',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Icon(Icons.badge, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Customer ID: $customerId',
+                          style: const TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
